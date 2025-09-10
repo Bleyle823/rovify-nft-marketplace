@@ -12,128 +12,45 @@ import {
 import { IoFlash, IoSparkles, IoWallet, IoTicket, IoTrendingUp } from "react-icons/io5";
 import { HiOutlineSparkles, HiOutlineFire } from "react-icons/hi2";
 import { BsTicketPerforated, BsLightningCharge } from "react-icons/bs";
+import { useOrganiserDashboard } from '@/hooks/useOrganiserDashboard';
 
-// Enhanced mock data for organizer dashboard
-const mockOrganizer = {
-    name: 'Joe Rover',
-    level: 'Pro',
-    levelProgress: 85,
-    points: 4720,
-    streakDays: 18,
-    eventsCreated: 45,
-    totalAttendees: 12847,
-    totalRevenue: 145250,
-    monthlyGrowth: 23.5,
-    rating: 4.9,
-    completedEvents: 38
+// Helper function to get icon component
+const getIconComponent = (iconName: string) => {
+    const iconMap: Record<string, React.ReactNode> = {
+        'dollar-sign': <FiDollarSign className="w-6 h-6" />,
+        'calendar': <BsTicketPerforated className="w-6 h-6" />,
+        'users': <FiUsers className="w-6 h-6" />,
+        'star': <FiStar className="w-6 h-6" />
+    };
+    return iconMap[iconName] || <FiDollarSign className="w-6 h-6" />;
 };
 
-const mockQuickStats = [
-    {
-        id: 'revenue',
-        title: 'Monthly Revenue',
-        value: '$12,847',
-        change: '+23.5%',
-        trend: 'up' as const,
-        icon: <FiDollarSign className="w-6 h-6" />,
-        color: 'from-emerald-500 to-green-600',
-        bgColor: 'bg-emerald-50',
-        textColor: 'text-emerald-600'
-    },
-    {
-        id: 'events',
-        title: 'Active Events',
-        value: '12',
-        change: '+3',
-        trend: 'up' as const,
-        icon: <BsTicketPerforated className="w-6 h-6" />,
-        color: 'from-blue-500 to-blue-600',
-        bgColor: 'bg-blue-50',
-        textColor: 'text-blue-600'
-    },
-    {
-        id: 'attendees',
-        title: 'Total Attendees',
-        value: '2,847',
-        change: '+412',
-        trend: 'up' as const,
-        icon: <FiUsers className="w-6 h-6" />,
-        color: 'from-purple-500 to-purple-600',
-        bgColor: 'bg-purple-50',
-        textColor: 'text-purple-600'
-    },
-    {
-        id: 'rating',
-        title: 'Avg Rating',
-        value: '4.9',
-        change: '+0.2',
-        trend: 'up' as const,
-        icon: <FiStar className="w-6 h-6" />,
-        color: 'from-amber-500 to-orange-500',
-        bgColor: 'bg-amber-50',
-        textColor: 'text-amber-600'
-    }
-];
-
-const mockUpcomingEvents = [
-    {
-        id: 'event1',
-        title: 'AI & Machine Learning Summit 2025',
-        date: '2025-07-15',
-        time: '9:00 AM',
-        image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=300&fit=crop',
-        location: 'Tech Convention Center',
-        price: 299,
-        attendees: 847,
-        capacity: 1000,
-        daysUntil: 24,
-        status: 'selling_fast',
-        category: 'Technology'
-    },
-    {
-        id: 'event2',
-        title: 'Electronic Music Festival',
-        date: '2025-07-28',
-        time: '6:00 PM',
-        image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400&h=300&fit=crop',
-        location: 'Downtown Arena',
-        price: 129,
-        attendees: 1247,
-        capacity: 2000,
-        daysUntil: 37,
-        status: 'on_sale',
-        category: 'Music'
-    },
-    {
-        id: 'event3',
-        title: 'Startup Pitch Competition',
-        date: '2025-08-05',
-        time: '2:00 PM',
-        image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop',
-        location: 'Innovation Hub',
-        price: 89,
-        attendees: 156,
-        capacity: 200,
-        daysUntil: 45,
-        status: 'new',
-        category: 'Business'
-    }
-];
-
-const mockRecentActivity = [
-    { id: '1', type: 'ticket_sale', event: 'AI Summit', amount: '$299', time: '2 min ago', icon: IoTicket },
-    { id: '2', type: 'new_registration', event: 'Music Festival', count: '5 attendees', time: '15 min ago', icon: FiUsers },
-    { id: '3', type: 'review_received', event: 'Tech Meetup', rating: '5 stars', time: '1 hour ago', icon: FiStar },
-    { id: '4', type: 'milestone_reached', event: 'Startup Pitch', milestone: '100 registrations', time: '3 hours ago', icon: FiTarget },
-    { id: '5', type: 'payment_received', event: 'Music Festival', amount: '$1,547', time: '5 hours ago', icon: FiDollarSign }
-];
-
-const mockTrendingMetrics = [
-    { label: 'Event Views', value: '24.7K', change: '+12.5%', trend: 'up' },
-    { label: 'Conversion Rate', value: '8.4%', change: '+2.1%', trend: 'up' },
-    { label: 'Avg Ticket Price', value: '$147', change: '+$23', trend: 'up' },
-    { label: 'Customer Retention', value: '92%', change: '+5%', trend: 'up' }
-];
+// Helper function to get color classes
+const getColorClasses = (color: string) => {
+    const colorMap: Record<string, { color: string; bgColor: string; textColor: string }> = {
+        'emerald': {
+            color: 'from-emerald-500 to-green-600',
+            bgColor: 'bg-emerald-50',
+            textColor: 'text-emerald-600'
+        },
+        'blue': {
+            color: 'from-blue-500 to-blue-600',
+            bgColor: 'bg-blue-50',
+            textColor: 'text-blue-600'
+        },
+        'purple': {
+            color: 'from-purple-500 to-purple-600',
+            bgColor: 'bg-purple-50',
+            textColor: 'text-purple-600'
+        },
+        'amber': {
+            color: 'from-amber-500 to-orange-500',
+            bgColor: 'bg-amber-50',
+            textColor: 'text-amber-600'
+        }
+    };
+    return colorMap[color] || colorMap['emerald'];
+};
 
 // Enhanced StatCard component
 const StatCard = ({
@@ -141,12 +58,16 @@ const StatCard = ({
     index,
     gradient = false
 }: {
-    stat: typeof mockQuickStats[0],
+    stat: any,
     index: number,
     gradient?: boolean
-}) => (
+}) => {
+    const colors = getColorClasses(stat.color);
+    const icon = getIconComponent(stat.icon);
+    
+    return (
     <motion.div
-        className={`${gradient ? `bg-gradient-to-br ${stat.color}` : 'bg-white'} rounded-2xl p-6 border ${gradient ? 'border-white/20' : 'border-gray-100'} hover:shadow-xl transition-all duration-300 relative overflow-hidden group`}
+        className={`${gradient ? `bg-gradient-to-br ${colors.color}` : 'bg-white'} rounded-2xl p-6 border ${gradient ? 'border-white/20' : 'border-gray-100'} hover:shadow-xl transition-all duration-300 relative overflow-hidden group`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.1 }}
@@ -154,12 +75,12 @@ const StatCard = ({
         whileTap={{ scale: 0.98 }}
     >
         {/* Background decoration */}
-        <div className={`absolute -top-4 -right-4 w-20 h-20 ${gradient ? 'bg-white/10' : stat.bgColor} rounded-full blur-xl opacity-60`}></div>
+        <div className={`absolute -top-4 -right-4 w-20 h-20 ${gradient ? 'bg-white/10' : colors.bgColor} rounded-full blur-xl opacity-60`}></div>
 
         <div className="relative">
             <div className="flex items-center justify-between mb-4">
-                <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${gradient ? 'bg-white/20' : stat.bgColor} ${gradient ? 'text-white' : stat.textColor}`}>
-                    {stat.icon}
+                <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${gradient ? 'bg-white/20' : colors.bgColor} ${gradient ? 'text-white' : colors.textColor}`}>
+                    {icon}
                 </div>
                 <div className={`flex items-center gap-1 text-sm font-bold ${gradient ? 'text-white/90' : stat.trend === 'up' ? 'text-emerald-600' : 'text-red-500'}`}>
                     {stat.trend === 'up' ? <FiTrendingUp className="w-4 h-4" /> : <FiTrendingDown className="w-4 h-4" />}
@@ -172,10 +93,11 @@ const StatCard = ({
             </div>
         </div>
     </motion.div>
-);
+    );
+};
 
 // EventCard component
-const EventCard = ({ event, index }: { event: typeof mockUpcomingEvents[0], index: number }) => {
+const EventCard = ({ event, index }: { event: any, index: number }) => {
     const getStatusStyle = (status: string) => {
         switch (status) {
             case 'selling_fast':
@@ -189,6 +111,10 @@ const EventCard = ({ event, index }: { event: typeof mockUpcomingEvents[0], inde
 
     const statusStyle = getStatusStyle(event.status);
     const fillPercentage = (event.attendees / event.capacity) * 100;
+    const eventLocation = typeof event.location === 'string' ? event.location : 
+        (event.location?.name || event.location?.address || 'Location TBD');
+    const eventPrice = typeof event.price === 'object' ? 
+        (event.price?.amount || event.price?.general || 0) : event.price || 0;
 
     return (
         <motion.div
@@ -211,7 +137,9 @@ const EventCard = ({ event, index }: { event: typeof mockUpcomingEvents[0], inde
                     </div>
                     <div className={`absolute -top-2 -right-2 ${statusStyle.bg} ${statusStyle.text} px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1`}>
                         {statusStyle.icon}
-                        {event.status.replace('_', ' ')}
+                        {event.status === 'published' ? 'Published' : 
+                         event.status === 'draft' ? 'Draft' : 
+                         event.status.replace('_', ' ')}
                     </div>
                 </div>
 
@@ -221,7 +149,7 @@ const EventCard = ({ event, index }: { event: typeof mockUpcomingEvents[0], inde
                             {event.title}
                         </h3>
                         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full whitespace-nowrap ml-2">
-                            {event.daysUntil} days
+                            {Math.ceil((new Date(event.date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days
                         </span>
                     </div>
 
@@ -232,17 +160,17 @@ const EventCard = ({ event, index }: { event: typeof mockUpcomingEvents[0], inde
                         </div>
                         <div className="flex items-center gap-1">
                             <FiClock className="w-4 h-4" />
-                            <span>{event.time}</span>
+                            <span>{new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                         <div className="flex items-center gap-1">
                             <FiMapPin className="w-4 h-4" />
-                            <span className="truncate">{event.location}</span>
+                            <span className="truncate">{eventLocation}</span>
                         </div>
                     </div>
 
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <span className="text-lg font-bold text-orange-600">${event.price}</span>
+                            <span className="text-lg font-bold text-orange-600">${eventPrice}</span>
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <FiUsers className="w-4 h-4" />
                                 <span>{event.attendees}/{event.capacity}</span>
@@ -269,11 +197,57 @@ const EventCard = ({ event, index }: { event: typeof mockUpcomingEvents[0], inde
 
 export default function Dashboard() {
     const [currentTime, setCurrentTime] = useState(new Date());
+    const {
+        dashboardData,
+        loading,
+        error,
+        refreshDashboard
+    } = useOrganiserDashboard();
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 60000);
         return () => clearInterval(timer);
     }, []);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-96">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading dashboard...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-lg font-semibold text-red-800">Error Loading Dashboard</h3>
+                        <p className="text-red-600 mt-1">{error}</p>
+                    </div>
+                    <button
+                        onClick={refreshDashboard}
+                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (!dashboardData) {
+        return (
+            <div className="text-center py-20">
+                <p className="text-gray-600">No dashboard data available</p>
+            </div>
+        );
+    }
+
+    const { organiserInfo, quickStats, recentActivity, upcomingEvents } = dashboardData;
 
     return (
         <div className="space-y-8">
@@ -297,7 +271,7 @@ export default function Dashboard() {
                             transition={{ delay: 0.2 }}
                         >
                             <h1 className="text-4xl lg:text-5xl font-bold mb-3">
-                                Welcome back, {mockOrganizer.name.split(' ')[0]}!
+                                Welcome back, {organiserInfo.name.split(' ')[0]}!
                                 <motion.span
                                     animate={{ rotate: [0, 20, 0] }}
                                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
@@ -307,7 +281,7 @@ export default function Dashboard() {
                                 </motion.span>
                             </h1>
                             <p className="text-orange-100 text-lg mb-6">
-                                You have {mockUpcomingEvents.length} active events • {mockOrganizer.totalAttendees.toLocaleString()} total attendees this year
+                                You have {upcomingEvents.length} active events • {organiserInfo.totalAttendees.toLocaleString()} total attendees this year
                             </p>
 
                             <div className="flex items-center gap-6 flex-wrap">
@@ -316,21 +290,21 @@ export default function Dashboard() {
                                     whileHover={{ scale: 1.05 }}
                                 >
                                     <BsLightningCharge className="w-5 h-5" />
-                                    <span className="font-semibold">{mockOrganizer.streakDays} day streak</span>
+                                    <span className="font-semibold">{organiserInfo.streakDays} day streak</span>
                                 </motion.div>
                                 <motion.div
                                     className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-2"
                                     whileHover={{ scale: 1.05 }}
                                 >
                                     <IoSparkles className="w-5 h-5" />
-                                    <span className="font-semibold">{mockOrganizer.level} Level</span>
+                                    <span className="font-semibold">{organiserInfo.level} Level</span>
                                 </motion.div>
                                 <motion.div
                                     className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-2"
                                     whileHover={{ scale: 1.05 }}
                                 >
                                     <FiStar className="w-5 h-5" />
-                                    <span className="font-semibold">{mockOrganizer.rating} Rating</span>
+                                    <span className="font-semibold">{organiserInfo.rating} Rating</span>
                                 </motion.div>
                             </div>
                         </motion.div>
@@ -343,18 +317,18 @@ export default function Dashboard() {
                         transition={{ delay: 0.4, duration: 0.6 }}
                     >
                         <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-6 lg:p-8 border border-white/30">
-                            <div className="text-4xl lg:text-5xl font-bold mb-3">{mockOrganizer.points.toLocaleString()}</div>
+                            <div className="text-4xl lg:text-5xl font-bold mb-3">{organiserInfo.points.toLocaleString()}</div>
                             <div className="text-orange-100 mb-4 text-lg">Reward Points</div>
                             <div className="relative">
                                 <div className="w-full bg-white/20 rounded-full h-3 mb-3">
                                     <motion.div
                                         className="bg-white rounded-full h-3 transition-all duration-1000"
                                         initial={{ width: 0 }}
-                                        animate={{ width: `${mockOrganizer.levelProgress}%` }}
+                                        animate={{ width: `${organiserInfo.levelProgress}%` }}
                                         transition={{ delay: 0.8, duration: 1.2 }}
                                     ></motion.div>
                                 </div>
-                                <div className="text-sm text-orange-100">{mockOrganizer.levelProgress}% to Platinum Level</div>
+                                <div className="text-sm text-orange-100">{organiserInfo.levelProgress}% to Platinum Level</div>
                             </div>
                         </div>
                     </motion.div>
@@ -363,7 +337,7 @@ export default function Dashboard() {
 
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {mockQuickStats.map((stat, index) => (
+                {quickStats.map((stat, index) => (
                     <StatCard
                         key={stat.id}
                         stat={stat}
@@ -373,40 +347,6 @@ export default function Dashboard() {
                 ))}
             </div>
 
-            {/* Trending Metrics */}
-            <motion.div
-                className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-            >
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                        <IoTrendingUp className="w-6 h-6 text-orange-500" />
-                        Trending Metrics
-                    </h2>
-                    <span className="text-sm text-gray-500">Last 30 days</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {mockTrendingMetrics.map((metric, index) => (
-                        <motion.div
-                            key={metric.label}
-                            className="p-4 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.8 + index * 0.1 }}
-                            whileHover={{ scale: 1.02 }}
-                        >
-                            <div className="text-2xl font-bold text-gray-900 mb-1">{metric.value}</div>
-                            <div className="text-sm text-gray-600 mb-2">{metric.label}</div>
-                            <div className="flex items-center gap-1 text-sm font-semibold text-emerald-600">
-                                <FiTrendingUp className="w-3 h-3" />
-                                {metric.change}
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            </motion.div>
 
             {/* Main Dashboard Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -440,7 +380,7 @@ export default function Dashboard() {
                             </div>
                         </div>
                         <div className="space-y-4">
-                            {mockUpcomingEvents.map((event, index) => (
+                            {upcomingEvents.map((event, index) => (
                                 <EventCard key={event.id} event={event} index={index} />
                             ))}
                         </div>
@@ -494,7 +434,7 @@ export default function Dashboard() {
                             Recent Activity
                         </h3>
                         <div className="space-y-3">
-                            {mockRecentActivity.map((activity, index) => (
+                            {recentActivity.map((activity, index) => (
                                 <motion.div
                                     key={activity.id}
                                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-orange-50/50 transition-colors cursor-pointer group"
@@ -504,7 +444,7 @@ export default function Dashboard() {
                                     whileHover={{ x: 4 }}
                                 >
                                     <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center group-hover:bg-orange-200 transition-colors">
-                                        <activity.icon className="w-5 h-5 text-orange-600" />
+                                        <FiDollarSign className="w-5 h-5 text-orange-600" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-semibold text-gray-900 truncate">
@@ -513,9 +453,9 @@ export default function Dashboard() {
                                             ).join(' ')}
                                         </p>
                                         <p className="text-xs text-gray-600 truncate">
-                                            {activity.event} • {activity.amount || activity.count || activity.rating || activity.milestone}
+                                            {activity.event} • {activity.currency} {activity.amount}
                                         </p>
-                                        <p className="text-xs text-gray-500">{activity.time}</p>
+                                        <p className="text-xs text-gray-500">{new Date(activity.time).toLocaleString()}</p>
                                     </div>
                                 </motion.div>
                             ))}
